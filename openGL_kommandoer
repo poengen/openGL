@@ -1,0 +1,9 @@
+// How to run a openGL (GLUT) program
+
+	$ g++ openGL_tutorial.cpp -o openGl -lGL -lGLU -lglut
+
+
+// Tutorials
+
+	http://www.opengl-tutorial.org/
+	http://www.lighthouse3d.com/tutorials/glut-tutorial/animation/
