@@ -17,11 +17,34 @@ GLfloat vertices[3*n*n]; //3*n^2		n=3(27), n=4(48)
 GLshort indices[6*(n-1)*(n-1)]; //6*(n-1)^2	n=3(24), n=4(54)
 GLubyte colors[3*n*n];
 
-double angle = 0.0f;
+double angless = 0.0f;
 void reshape(int w, int h);
 void display(void);
 void processNormalKeys(unsigned char key, int x, int y);
 void minGRID();
+
+// angle of rotation for the camera direction
+float angle = 0.0f;
+
+// actual vector representing the camera's direction
+float lx=0.0f,lz=-1.0f;
+
+// XZ position of the camera
+float x=0.0f, z=5.0f;
+
+
+void mouseButton(int button, int state, int x, int y);
+void mouseMove(int x, int y);
+float deltaAngle = 0.0f;
+float deltaMove = 0;
+int xOrigin = -1;
+
+void computePos(float deltaMove) {
+
+	x += deltaMove * lx * 0.1f;
+	z += deltaMove * lz * 0.1f;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -43,6 +66,9 @@ int main(int argc, char** argv)
 
 	glutKeyboardFunc(processNormalKeys);
 
+	glutMouseFunc(mouseButton);
+	glutMotionFunc(mouseMove);
+
     	glutMainLoop(); //event processing loop
 
     	return EXIT_SUCCESS;
@@ -50,13 +76,18 @@ int main(int argc, char** argv)
 
 void display(void)
 {
+
+	if (deltaMove)
+		computePos(deltaMove);
+
+
 	glClearColor(0,0,0,.5); //set colour to black
 	glEnable(GL_DEPTH_TEST); //enable depth
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glLoadIdentity(); // reset transformations
-	gluLookAt(	0.5, 0.5, 2.0, //position of eye point (origo)
-			0.5, 0.5, 0.0, //position of reference point (where to look)
+	gluLookAt(	0.5*x, 0.5, 2.0*z, //position of eye point (origo)
+			x+0.5*x, 0.5, z+lz, //position of reference point (where to look)
 			0.0, 1.0, 0.0); //direction of up vector
 	//glRotatef(angle,1.0,0.0,0.0);
 	//glTranslatef(0.0,0.0,0.0);
@@ -75,29 +106,28 @@ void display(void)
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 
-	angle+=2.5;
+	angless+=2.5;
     	glutSwapBuffers();
 }
 
 void minGRID() {
 	double h = 1./(double)(n-1);
-	double x[n];
+	double xx[n];
 	
 	for (int i=0; i<n; i++){
-		x[i] = i*h; // = -1+i*2*h; (shift quadrant)	
+		xx[i] = i*h; // = -1+i*2*h; (shift quadrant)	
 	}
 
-	double temp_z;
 	for (int i=0; i<n; i++){
 		for (int j=0; j<n; j++){
-			vertices[3*i+3*n*j] = x[i]; //x-coordinate
-			vertices[3*n*i+3*j+1] = x[i]; //y-coordinate
-			temp_z = sin(PI*x[i])*sin(PI*x[j]);
-			vertices[3*n*i+3*j+2] = temp_z; //z-coordinate
+			vertices[3*i+3*n*j] = xx[i]; //x-coordinate
+			vertices[3*n*i+3*j+1] = xx[i]; //y-coordinate
 
-			colors[3*i+3*n*j] = 200*(1-temp_z)+55; //red color
-			colors[3*n*i+3*j+1] = 800*(1-temp_z)*temp_z+55; //green color
-			colors[3*n*i+3*j+2] = 200*temp_z+55; //blue color			
+			vertices[3*n*i+3*j+2] = sin(PI*xx[i])*sin(PI*xx[j]); //z-coordinate
+
+			colors[3*i+3*n*j] = 200*(1-sin(PI*xx[i])*sin(PI*xx[j]))+55; //red color
+			colors[3*n*i+3*j+1] = 800*(1-sin(PI*xx[i])*sin(PI*xx[j]))*sin(PI*xx[i])*sin(PI*xx[j])+55; //green color
+			colors[3*n*i+3*j+2] = 200*sin(PI*xx[i])*sin(PI*xx[j])+55; //blue color			
 		}
 	}
 
@@ -124,7 +154,7 @@ void minGRID() {
 	}
 // TAKES AWAY UPPER OR LOWER TRIANGLES
 //for (int i=0; i<(6*(n-1)*(n-1))/2; i++){indices[i]=0;}
-for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
+//for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
 // PRINT FUNCTION
 //for (int i=0; i<6*(n-1)*(n-1); i++){cout << indices[i] << endl;}
 //for (int i=0; i<3*n*n; i++){cout << vertices[i] << endl;}
@@ -153,4 +183,35 @@ void reshape(int w, int h) //NESCESSARY IF WINDOW NOT CHANGED?
 
 	glMatrixMode(GL_MODELVIEW); // Get Back to the Modelview
 }
+
+void mouseButton(int button, int state, int x, int y) {
+
+	// only start motion if the left button is pressed
+	if (button == GLUT_LEFT_BUTTON) {
+
+		// when the button is released
+		if (state == GLUT_DOWN) {
+			angle += deltaAngle;
+			xOrigin = -1;
+		}
+		else  { //state = GLUT_DOWN
+			xOrigin = x;
+		}
+	}
+}
+
+void mouseMove(int x, int y) {
+
+	// this will only be true when the left button is down
+	if (xOrigin >= 0) {
+
+		// update deltaAngle
+		deltaAngle = (x - xOrigin) * 0.001f;
+
+		// update camera's direction
+		lx = sin(angle + deltaAngle);
+		lz = -cos(angle + deltaAngle);
+	}
+}
+
 
