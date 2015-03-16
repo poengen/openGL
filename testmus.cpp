@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <iostream>
-#include <math.h>
 
 #if defined(__APPLE_CC__)
 #include <GLUT/glut.h>
@@ -10,14 +9,16 @@
 
 using namespace std;
 
-#define PI 3.14159
 
-int const n = 100;//maks 256 for GLshort // THIS IS WHERE I DEFINE THE GRID SIZE
-GLfloat vertices[3*n*n]; //3*n^2		n=3(27), n=4(48)
-GLshort indices[6*(n-1)*(n-1)]; //6*(n-1)^2	n=3(24), n=4(54)
-GLubyte colors[3*n*n];
+GLdouble vertices[] = {-0.5,-0.5,0,0.5,-0.5,0,0,0.5,0};
 
-double angle = 0.0f;
+GLubyte colors[] = {	100, 0, 0,
+    			200, 200, 10,
+   			250, 0, 100 };
+
+GLshort indices[] = {0,1,2};
+
+
 void reshape(int w, int h);
 void display(void);
 void processNormalKeys(unsigned char key, int x, int y);
@@ -26,15 +27,12 @@ void minGRID();
 int main(int argc, char** argv)
 {
 
-	minGRID();
-
     	glutInit(&argc, argv); //initialize GLUT
 
 	glutInitWindowPosition(300,300); //window position, pixels from top left corner	
     	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
     	glutInitWindowSize(1000, 1000); //window size, width,height in pixels (640,480)
     	glutCreateWindow("Quack Program"); //create window
-
 
     	glutDisplayFunc(display); //requires the window to be painted
 
@@ -55,80 +53,28 @@ void display(void)
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glLoadIdentity(); // reset transformations
-	gluLookAt(	0.5, 0.5, 2.0, //position of eye point (origo)
-			0.5, 0.5, 0.0, //position of reference point (where to look)
+	gluLookAt(	0.0, 0.0, 4.0, //position of eye point (origo)
+			0.0, 0.0, 0.0, //position of reference point (where to look)
 			0.0, 1.0, 0.0); //direction of up vector
-	//glRotatef(angle,1.0,0.0,0.0);
-	//glTranslatef(0.0,0.0,0.0);
 
-	glColor3f(0,1,1);
+
+	glColor3f(1,0,0);
 	glEnableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	glPushMatrix();
 
-	glColorPointer(3, GL_UNSIGNED_BYTE, 0, colors);
-	glVertexPointer(3, GL_FLOAT, 0, vertices);
-	glDrawElements(GL_TRIANGLES, 6*(n-1)*(n-1), GL_UNSIGNED_SHORT, indices);
+	glColorPointer( 3, GL_UNSIGNED_BYTE, 0, colors );
+	glVertexPointer(3, GL_DOUBLE, 0, vertices);
+	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, indices);
 
 	glPopMatrix();
 
 	glDisableClientState(GL_VERTEX_ARRAY);
-
-	angle+=2.5;
     	glutSwapBuffers();
 }
 
-void minGRID() {
-	double h = 1./(double)(n-1);
-	double x[n];
-	
-	for (int i=0; i<n; i++){
-		x[i] = i*h; // = -1+i*2*h; (shift quadrant)	
-	}
 
-	for (int i=0; i<n; i++){
-		for (int j=0; j<n; j++){
-			vertices[3*i+3*n*j] = x[i]; //x-coordinate
-			vertices[3*n*i+3*j+1] = x[i]; //y-coordinate
-
-			vertices[3*n*i+3*j+2] = 0; //sin(PI*x[i])*sin(PI*x[j]); //z-coordinate
-
-			colors[3*i+3*n*j] = 200*sin(PI*x[i])*sin(PI*x[j])+55; //red color
-			colors[3*n*i+3*j+1] = 0; //255*vertices[3*n*i+3*j+2]; //green color
-			colors[3*n*i+3*j+2] = 0; //255*vertices[3*n*i+3*j+2]; //blue color			
-		}
-	}
-
-	int index;
-	int a;
-	for (int k=0; k<2; k++){
-		index = 0;
-		for (int l=0; l<n-1; l++){
-			index = l*n;
-			for (int j=0; j<3; j++){
-				if (k==0 && j==1){ index = index - (n-2); }
-
-				else if (k==0 && j==2){ index++; }
-				else if (k==1 && j==1){ index++; }
-				else if (k==1 && j==2){ index = index - (n-2); }
-				
-				for(int i=0; i<n-1; i++){
-					a = 3*k*(n-1)*(n-1) + 3*l*(n-1) + j + 3*i;
-					indices[a] = index;
-					index++;
-				}
-			}
-		}
-	}
-// TAKES AWAY UPPER OR LOWER TRIANGLES
-//for (int i=0; i<(6*(n-1)*(n-1))/2; i++){indices[i]=0;}
-//for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
-// PRINT FUNCTION
-//for (int i=0; i<6*(n-1)*(n-1); i++){cout << indices[i] << endl;}
-//for (int i=0; i<3*n*n; i++){cout << vertices[i] << endl;}
-	
-}
 
 void processNormalKeys(unsigned char key, int x, int y) {
 	if (key == 27) //press ESC to exit app
@@ -152,5 +98,3 @@ void reshape(int w, int h) //NESCESSARY IF WINDOW NOT CHANGED?
 
 	glMatrixMode(GL_MODELVIEW); // Get Back to the Modelview
 }
-
-

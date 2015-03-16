@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <iostream>
+#include <math.h>
 
 #if defined(__APPLE_CC__)
 #include <GLUT/glut.h>
@@ -9,9 +10,12 @@
 
 using namespace std;
 
+#define PI 3.14159
+
 int const n = 100;//maks 256 for GLshort // THIS IS WHERE I DEFINE THE GRID SIZE
 GLfloat vertices[3*n*n]; //3*n^2		n=3(27), n=4(48)
 GLshort indices[6*(n-1)*(n-1)]; //6*(n-1)^2	n=3(24), n=4(54)
+GLubyte colors[3*n*n];
 
 double angle = 0.0f;
 void reshape(int w, int h);
@@ -51,17 +55,19 @@ void display(void)
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glLoadIdentity(); // reset transformations
-	gluLookAt(	0.0, 0.0, 10.0, //position of eye point (origo)
-			0.0, 0.0, 0.0, //position of reference point (where to look)
+	gluLookAt(	0.5, 0.5, 2.0, //position of eye point (origo)
+			0.5, 0.5, 0.0, //position of reference point (where to look)
 			0.0, 1.0, 0.0); //direction of up vector
 	//glRotatef(angle,1.0,0.0,0.0);
 	//glTranslatef(0.0,0.0,0.0);
 
-	glColor3f(1,0,0);
+	glColor3f(0,1,1);
+	glEnableClientState(GL_COLOR_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	glPushMatrix();
 
+	glColorPointer(3, GL_UNSIGNED_BYTE, 0, colors);
 	glVertexPointer(3, GL_FLOAT, 0, vertices);
 	glDrawElements(GL_TRIANGLES, 6*(n-1)*(n-1), GL_UNSIGNED_SHORT, indices);
 
@@ -78,14 +84,19 @@ void minGRID() {
 	double x[n];
 	
 	for (int i=0; i<n; i++){
-		x[i] = -1+i*2*h; // = i*h; (first quadrant only)	
+		x[i] = i*h; // = -1+i*2*h; (shift quadrant)	
 	}
 
 	for (int i=0; i<n; i++){
 		for (int j=0; j<n; j++){
-			vertices[3*i+3*n*j] = x[i];
-			vertices[3*n*i+3*j+1] = x[i];
-			vertices[3*n*i+3*j+2] = 7;			
+			vertices[3*i+3*n*j] = x[i]; //x-coordinate
+			vertices[3*n*i+3*j+1] = x[i]; //y-coordinate
+
+			vertices[3*n*i+3*j+2] = 0; //sin(PI*x[i])*sin(PI*x[j]); //z-coordinate
+
+			colors[3*i+3*n*j] = 200*sin(PI*x[i])*sin(PI*x[j])+55; //red color
+			colors[3*n*i+3*j+1] = 0; //255*vertices[3*n*i+3*j+2]; //green color
+			colors[3*n*i+3*j+2] = 0; //255*vertices[3*n*i+3*j+2]; //blue color			
 		}
 	}
 
@@ -112,7 +123,7 @@ void minGRID() {
 	}
 // TAKES AWAY UPPER OR LOWER TRIANGLES
 //for (int i=0; i<(6*(n-1)*(n-1))/2; i++){indices[i]=0;}
-for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
+//for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
 // PRINT FUNCTION
 //for (int i=0; i<6*(n-1)*(n-1); i++){cout << indices[i] << endl;}
 //for (int i=0; i<3*n*n; i++){cout << vertices[i] << endl;}

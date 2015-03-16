@@ -5,6 +5,9 @@
 minGLUT: minGLUT.cpp
 	g++ -o minGLUT minGLUT.cpp -lGL -lGLU -lglut -lGLEW
 
+minGLUT: testmus.cpp
+	g++ -o testmus testmus.cpp -lGL -lGLU -lglut -lGLEW
+
 density: density.cpp
 	g++ -o density density.cpp -lGL -lGLU -lglut -lGLEW
 
