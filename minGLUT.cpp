@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     	glutDisplayFunc(display); //requires the window to be painted
 
     	glutReshapeFunc(reshape);
-    	glutIdleFunc(display); // keep calling display (rendering function) when idle
+    	glutIdleFunc(myDriver); // keep calling display (rendering function) when idle
 
 	glutKeyboardFunc(processNormalKeys);
 
@@ -48,6 +48,27 @@ int main(int argc, char** argv)
     	return EXIT_SUCCESS;
 }
 
+void myDriver() {
+    // figure out how long since last time
+    timePassed = time.now() - lastTime;
+    lastTime = time.now()
+    // update armadillo field
+    myArmadilloClass.stepTime(timePassed);
+    // send armadillo field to openGL
+    u = myArmadilloClass.getSolution();
+    updateVertices(u);
+    // draw image
+    glutPostRedisplay();
+}
+
+void updateVertices(u) {
+    int k=0;
+    for(int i=0; i<n; i++) {
+	for(int j=0; j<n; j++) {
+	    vert[k++] = (float) u(i,j);
+	}
+    }
+}
 void display(void)
 {
 	glClearColor(0,0,0,.5); //set colour to black
@@ -55,11 +76,12 @@ void display(void)
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glLoadIdentity(); // reset transformations
-	gluLookAt(	0.5, 0.5, 2.0, //position of eye point (origo)
+	gluLookAt(	2, 2, 2.0, //position of eye point (origo)
 			0.5, 0.5, 0.0, //position of reference point (where to look)
-			0.0, 1.0, 0.0); //direction of up vector
-	//glRotatef(angle,1.0,0.0,0.0);
-	//glTranslatef(0.0,0.0,0.0);
+			0.0, 0.0, 1.0); //direction of up vector
+	// glRotatef(angle,0.0,0.0,1.0);
+	// glTranslatef(0.0,0.0,0.0);
+	glLoadIdentity(); // reset transformations
 
 	glColor3f(0,1,1);
 	glEnableClientState(GL_COLOR_ARRAY);
@@ -75,7 +97,7 @@ void display(void)
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 
-	angle+=2.5;
+	angle+=0.5;
     	glutSwapBuffers();
 }
 
@@ -124,7 +146,7 @@ void minGRID() {
 	}
 // TAKES AWAY UPPER OR LOWER TRIANGLES
 //for (int i=0; i<(6*(n-1)*(n-1))/2; i++){indices[i]=0;}
-for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
+// for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
 // PRINT FUNCTION
 //for (int i=0; i<6*(n-1)*(n-1); i++){cout << indices[i] << endl;}
 //for (int i=0; i<3*n*n; i++){cout << vertices[i] << endl;}
