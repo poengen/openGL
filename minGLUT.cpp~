@@ -92,11 +92,11 @@ void minGRID() {
 			vertices[3*i+3*n*j] = x[i]; //x-coordinate
 			vertices[3*n*i+3*j+1] = x[i]; //y-coordinate
 
-			vertices[3*n*i+3*j+2] = 0; //sin(PI*x[i])*sin(PI*x[j]); //z-coordinate
+			vertices[3*n*i+3*j+2] = sin(PI*x[i])*sin(PI*x[j]); //z-coordinate
 
-			colors[3*i+3*n*j] = 200*sin(PI*x[i])*sin(PI*x[j])+55; //red color
-			colors[3*n*i+3*j+1] = 0; //255*vertices[3*n*i+3*j+2]; //green color
-			colors[3*n*i+3*j+2] = 0; //255*vertices[3*n*i+3*j+2]; //blue color			
+			colors[3*i+3*n*j] = 200*(1-sin(PI*x[i])*sin(PI*x[j]))+55; //red color
+			colors[3*n*i+3*j+1] = 800*(1-sin(PI*x[i])*sin(PI*x[j]))*sin(PI*x[i])*sin(PI*x[j])+55; //green color
+			colors[3*n*i+3*j+2] = 200*sin(PI*x[i])*sin(PI*x[j])+55; //blue color			
 		}
 	}
 

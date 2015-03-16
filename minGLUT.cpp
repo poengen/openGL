@@ -92,11 +92,11 @@ void minGRID() {
 			vertices[3*i+3*n*j] = x[i]; //x-coordinate
 			vertices[3*n*i+3*j+1] = x[i]; //y-coordinate
 
-			vertices[3*n*i+3*j+2] = 0; //sin(PI*x[i])*sin(PI*x[j]); //z-coordinate
+			vertices[3*n*i+3*j+2] = sin(PI*x[i])*sin(PI*x[j]); //z-coordinate
 
-			colors[3*i+3*n*j] = 200*sin(PI*x[i])*sin(PI*x[j])+55; //red color
-			colors[3*n*i+3*j+1] = 0; //255*vertices[3*n*i+3*j+2]; //green color
-			colors[3*n*i+3*j+2] = 0; //255*vertices[3*n*i+3*j+2]; //blue color			
+			colors[3*i+3*n*j] = 200*(1-sin(PI*x[i])*sin(PI*x[j]))+55; //red color
+			colors[3*n*i+3*j+1] = 800*(1-sin(PI*x[i])*sin(PI*x[j]))*sin(PI*x[i])*sin(PI*x[j])+55; //green color
+			colors[3*n*i+3*j+2] = 200*sin(PI*x[i])*sin(PI*x[j])+55; //blue color			
 		}
 	}
 
@@ -123,7 +123,7 @@ void minGRID() {
 	}
 // TAKES AWAY UPPER OR LOWER TRIANGLES
 //for (int i=0; i<(6*(n-1)*(n-1))/2; i++){indices[i]=0;}
-//for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
+for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
 // PRINT FUNCTION
 //for (int i=0; i<6*(n-1)*(n-1); i++){cout << indices[i] << endl;}
 //for (int i=0; i<3*n*n; i++){cout << vertices[i] << endl;}
