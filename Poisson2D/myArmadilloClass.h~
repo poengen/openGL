@@ -1,0 +1,48 @@
+// myArmadilloClass.h
+//C++ code for solving poisson 2D
+#include <iostream>
+#include <armadillo>
+#include <math.h>
+#include <stdlib.h>
+#include <GL/glut.h>
+
+using namespace std;
+using namespace arma;
+
+#define PI 3.14159
+//Number of internal grid points n
+int const n = 30; //maks 256 for GLshort
+
+
+class MyArmadilloClass
+{
+	private:
+	int k;
+	double hx, ht, T;
+	mat A, G, I;
+	
+	public:
+	MyArmadilloClass();
+	vec getSolution(vec u);
+	
+	double getDouble();
+	mat getMat();
+};
+
+//Vertices, indices and color buffers
+GLdouble vertices[3*n*n]; //3*n^2		n=3(27), n=4(48)
+GLshort indices[6*(n-1)*(n-1)]; //6*(n-1)^2	n=3(24), n=4(54)
+GLubyte colors[3*n*n];
+
+//Armadillo variables
+vec u = zeros<vec>(n*n);
+MyArmadilloClass myArmadilloStuff;
+
+double angle = 0.0f;
+void reshape(int w, int h);
+void display(void);
+void processNormalKeys(unsigned char key, int x, int y);
+void minGRID();
+void myDriver();
+void updateU();
+void updateVertices();

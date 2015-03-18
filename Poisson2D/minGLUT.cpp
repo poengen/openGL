@@ -1,79 +1,84 @@
-#include <stdlib.h>
-#include <iostream>
-#include <math.h>
-#include <armadillo>
+#include "myArmadilloClass.h"
 
-#if defined(__APPLE_CC__)
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
-
-using namespace std;
-using namespace arma;
-
-#define PI 3.14159
-
-int const n = 25;//maks 256 for GLshort // THIS IS WHERE I DEFINE THE GRID SIZE
-GLfloat vertices[3*n*n]; //3*n^2		n=3(27), n=4(48)
+//Vertices, indices and color buffers
+GLdouble vertices[3*n*n]; //3*n^2		n=3(27), n=4(48)
 GLshort indices[6*(n-1)*(n-1)]; //6*(n-1)^2	n=3(24), n=4(54)
 GLubyte colors[3*n*n];
+
+//Armadillo variables
+vec u = zeros<vec>(n*n);
+MyArmadilloClass myArmadilloStuff;
 
 double angle = 0.0f;
 void reshape(int w, int h);
 void display(void);
 void processNormalKeys(unsigned char key, int x, int y);
 void minGRID();
+void myDriver();
+void updateU();
+void updateVertices();
 
 int main(int argc, char** argv)
 {
-
 	minGRID();
 
     	glutInit(&argc, argv); //initialize GLUT
-
 	glutInitWindowPosition(300,300); //window position, pixels from top left corner	
     	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
     	glutInitWindowSize(1000, 1000); //window size, width,height in pixels (640,480)
     	glutCreateWindow("Quack Program"); //create window
 
-
     	glutDisplayFunc(display); //requires the window to be painted
-
     	glutReshapeFunc(reshape);
     	
-	glutIdleFunc(display); // keep calling display (rendering function) when idle
-	//glutIdleFunc(myDriver); 
-
+	//glutIdleFunc(display); // keep calling display (rendering function) when idle
+	glutIdleFunc(myDriver);
 	glutKeyboardFunc(processNormalKeys);
 
     	glutMainLoop(); //event processing loop
 
     	return EXIT_SUCCESS;
 }
-/*
+
 void myDriver() {
     // figure out how long since last time
     // timePassed = time.now() - lastTime;
     // lastTime = time.now()
     // update armadillo field
-    myArmadilloClass.stepTime(timePassed);
+    // myArmadilloClass.stepTime(timePassed);
     // send armadillo field to openGL
-    u = myArmadilloClass.getSolution();
-    updateVertices(u);
-    // draw image
+
+    updateU();
+    u = myArmadilloStuff.getSolution(u);
+    updateVertices();
+
+    
     glutPostRedisplay();
 }
 
-void updateVertices(u) {
+void updateU(){
     int k=0;
     for(int i=0; i<n; i++) {
 	for(int j=0; j<n; j++) {
-	    vert[k++] = (float) u(i,j);
+	    u(k++) = (double) vertices[3*n*i+3*j+2];
+	}
+    }	
+}
+
+void updateVertices() {
+    int k=0;
+    GLdouble temp_z;
+    for(int i=0; i<n; i++) {
+	for(int j=0; j<n; j++) {
+	    	temp_z = (GLdouble) u(k++);
+		vertices[3*n*i+3*j+2] = temp_z; //z-coordinate
+		colors[3*i+3*n*j] = 200*(1-temp_z)+55; //red color
+		colors[3*n*i+3*j+1] = 800*(1-temp_z)*temp_z+55; //green color
+		colors[3*n*i+3*j+2] = 200*temp_z+55; //blue color
 	}
     }
 }
-*/
+
 void display(void)
 {
 	glClearColor(0,0,0,.5); //set colour to black
@@ -95,7 +100,7 @@ void display(void)
 	glPushMatrix();
 
 	glColorPointer(3, GL_UNSIGNED_BYTE, 0, colors);
-	glVertexPointer(3, GL_FLOAT, 0, vertices);
+	glVertexPointer(3, GL_DOUBLE, 0, vertices);
 	glDrawElements(GL_TRIANGLES, 6*(n-1)*(n-1), GL_UNSIGNED_SHORT, indices);
 
 	glPopMatrix();
@@ -153,7 +158,7 @@ void minGRID() {
 
 // TAKES AWAY UPPER OR LOWER TRIANGLES
 //for (int i=0; i<(6*(n-1)*(n-1))/2; i++){indices[i]=0;}
-for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
+//for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
 // PRINT FUNCTION
 //for (int i=0; i<6*(n-1)*(n-1); i++){cout << indices[i] << endl;}
 //for (int i=0; i<3*n*n; i++){cout << vertices[i] << endl;}
@@ -183,3 +188,34 @@ void reshape(int w, int h) //NESCESSARY IF WINDOW NOT CHANGED?
 	glMatrixMode(GL_MODELVIEW); // Get Back to the Modelview
 }
 
+MyArmadilloClass::MyArmadilloClass(){
+	hx = 1./double(n-1);
+	ht = 0.001; //time-step
+	k = 100; //number of time-steps
+	T = ht*k; //total time
+
+	A = zeros<mat>(n*n,n*n);
+	I = zeros<mat>(n*n,n*n);
+	G = zeros<mat>(n*n,n*n);
+
+
+	for (int i = 0; i < n*n; i++){ A(i,i) = 4; I(i,i) = 1;}
+	for (int i = 0; i < n*n-n; i++) { A(i,n+i) = -1; A(n+i,i) = -1; }
+	for (int i = 0; i < n*n-1; i++) { A(i,i+1) = -1; A(i+1,i) = -1; }
+	for (int i = 0; i < n-1; i++) { A((i+1)*n-1,(i+1)*n) = 0; A((i+1)*n,(i+1)*n-1) = 0; }
+	A = -1/(hx*hx)*A;
+	G = I-ht*A;
+}
+
+double MyArmadilloClass::getDouble(){
+	return hx;
+}
+
+mat MyArmadilloClass::getMat(){
+	return G;
+}
+
+vec MyArmadilloClass::getSolution(vec u) {
+	u = solve(G,u);
+	return u;
+}
