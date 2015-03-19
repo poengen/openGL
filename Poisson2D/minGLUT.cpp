@@ -1,4 +1,5 @@
 #include "myArmadilloClass.h"
+#include <sys/time.h>
 
 //Vertices, indices and color buffers
 GLdouble vertices[3*n*n]; //3*n^2		n=3(27), n=4(48)
@@ -9,10 +10,14 @@ GLubyte colors[3*n*n];
 vec u = zeros<vec>(n*n);
 MyArmadilloClass myArmadilloStuff;
 
+struct timeval lastTime;
 double angle = 0.0f;
 void reshape(int w, int h);
 void display(void);
 void processNormalKeys(unsigned char key, int x, int y);
+void mouseClick(int button, int state, int x, int y);
+void mouseDrag(int x, int y);
+void mouseMove(int x, int y);
 void minGRID();
 void myDriver();
 void updateU();
@@ -35,13 +40,42 @@ int main(int argc, char** argv)
 	glutIdleFunc(myDriver);
 	glutKeyboardFunc(processNormalKeys);
 
+	// mouse input
+	glutMouseFunc(mouseClick);
+	glutMotionFunc(mouseDrag);
+	glutPassiveMotionFunc(mouseMove);
+
     	glutMainLoop(); //event processing loop
 
     	return EXIT_SUCCESS;
 }
 
+void mouseClick(int button, int state, int x, int y) {
+    cout << "Mouse click at " << x << ", " << y << " button " << button << "  state " << state << endl;
+    if(button == GLUT_LEFT_BUTTON) {
+    }
+}
+void mouseDrag(int x, int y) {
+    // cout << "Mouse drag at " << x << ", " << y << endl;
+}
+void mouseMove(int x, int y) {
+    // cout << "Mouse move at " << x << ", " << y << endl;
+}
+
+long getTimePassed() {
+	struct timeval time_now;
+	long seconds, useconds;
+	gettimeofday(&time_now, NULL);
+	seconds  = time_now.tv_sec  - lastTime.tv_sec;
+	useconds = time_now.tv_usec - lastTime.tv_usec;
+	lastTime = time_now;
+	return ((seconds*1000) + useconds/1000.0);
+}
+
 void myDriver() {
     // figure out how long since last time
+	long t = getTimePassed();
+	// cout << t << endl;
     // timePassed = time.now() - lastTime;
     // lastTime = time.now()
     // update armadillo field
@@ -49,7 +83,7 @@ void myDriver() {
     // send armadillo field to openGL
 
     updateU();
-    u = myArmadilloStuff.getSolution(u);
+    // u = myArmadilloStuff.getSolution(u);
     updateVertices();
 
     
@@ -86,10 +120,13 @@ void display(void)
     	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glLoadIdentity(); // reset transformations
+	/*
 	gluLookAt(	-3, -3, 3.0, //position of eye point (origo)
 			0.0, 0.0, 0.0, //position of reference point (where to look)
 			0.0, 0.0, 1.0); //direction of up vector
 	glRotatef(angle,0.0,0.0,1.0);
+	*/
+	// glScalef(1,1,-1);
 	//glTranslatef(1.0,1.0,0.0);
 	//glLoadIdentity(); // reset transformations
 
@@ -126,7 +163,7 @@ void minGRID() {
 			vertices[3*i+3*n*j] = x[i]; //x-coordinate
 			vertices[3*n*i+3*j+1] = x[i]; //y-coordinate
 			temp_z = cos(0.5*PI*x[i])*cos(0.5*PI*x[j]); // sin(PI*x[i])*sin(PI*x[j]);
-			vertices[3*n*i+3*j+2] = temp_z; //z-coordinate
+			vertices[3*n*i+3*j+2] = .5*temp_z; //z-coordinate
 
 			colors[3*i+3*n*j] = 200*(1-temp_z)+55; //red color
 			colors[3*n*i+3*j+1] = 800*(1-temp_z)*temp_z+55; //green color
@@ -183,7 +220,7 @@ void reshape(int w, int h) //NESCESSARY IF WINDOW NOT CHANGED?
 	glViewport(0, 0, w, h); // Set the viewport to be the entire window
 
 	// Set the correct perspective.
-	gluPerspective(45,ratio,1,100); //last two defines near and far clipping plane
+	// gluPerspective(45,ratio,1,100); //last two defines near and far clipping plane
 
 	glMatrixMode(GL_MODELVIEW); // Get Back to the Modelview
 }
