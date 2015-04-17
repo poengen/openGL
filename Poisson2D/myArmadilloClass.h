@@ -11,7 +11,7 @@ using namespace arma;
 
 #define PI 3.14159
 //Number of internal grid points n
-int const n = 30; //maks 256 for GLshort
+int const n = 10; //maks 256 for GLshort
 
 
 class MyArmadilloClass
@@ -23,7 +23,7 @@ class MyArmadilloClass
 	
 	public:
 	MyArmadilloClass();
-	vec getSolution(vec u);
+	vec getDiffusion(vec u);
 	
 	double getDouble();
 	mat getMat();

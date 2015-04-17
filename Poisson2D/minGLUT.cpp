@@ -2,42 +2,49 @@
 #include <sys/time.h>
 
 //Vertices, indices and color buffers
-GLdouble vertices[3*n*n]; //3*n^2		n=3(27), n=4(48)
-GLshort indices[6*(n-1)*(n-1)]; //6*(n-1)^2	n=3(24), n=4(54)
-GLubyte colors[3*n*n];
+GLdouble vertices[3*n*n]; //3*n^2		n=3(27), n=4(48) //x,y,z coordinates of vertices
+GLshort indices[6*(n-1)*(n-1)]; //6*(n-1)^2	n=3(24), n=4(54) //index numbering
+GLubyte colors[3*n*n]; //RGB, color coordinates for each vertex
 
 //Armadillo variables
-vec u = zeros<vec>(n*n);
-MyArmadilloClass myArmadilloStuff;
+vec u = zeros<vec>(n*n); //numerical solution vector of size n*n
+MyArmadilloClass myArmadilloStuff; //contructs a variable of type MyArmadilloClass
 
 struct timeval lastTime;
-double angle = 0.0f;
+//double angle = 0.0f;
 void reshape(int w, int h);
 void display(void);
 void processNormalKeys(unsigned char key, int x, int y);
+
+//mouse input
 void mouseClick(int button, int state, int x, int y);
 void mouseDrag(int x, int y);
 void mouseMove(int x, int y);
+
 void minGRID();
 void myDriver();
 void updateU();
 void updateVertices();
 
+void print1DArray(int size, GLshort array[]);
+
 int main(int argc, char** argv)
 {
-	minGRID();
+	minGRID(); //initialize the buffers vertices, colors and indices to create the grid
+
+	//print1DArray(6*(n-1)*(n-1),indices);
 
     	glutInit(&argc, argv); //initialize GLUT
 	glutInitWindowPosition(300,300); //window position, pixels from top left corner	
-    	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-    	glutInitWindowSize(1000, 1000); //window size, width,height in pixels (640,480)
+    	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH); //display mode
+    	glutInitWindowSize(1000, 1000); //window size, width, height in pixels (640,480)
     	glutCreateWindow("Quack Program"); //create window
 
     	glutDisplayFunc(display); //requires the window to be painted
-    	glutReshapeFunc(reshape);
+    	//glutReshapeFunc(reshape);
     	
 	//glutIdleFunc(display); // keep calling display (rendering function) when idle
-	glutIdleFunc(myDriver);
+	glutIdleFunc(myDriver); //does the numerical simulation, this is where the program operates mostly
 	glutKeyboardFunc(processNormalKeys);
 
 	// mouse input
@@ -50,16 +57,23 @@ int main(int argc, char** argv)
     	return EXIT_SUCCESS;
 }
 
+void print1DArray(int size, GLshort array[]){
+		for (int i = 0; i < size; i++){
+			cout << array[i] << "\t";
+		}
+		cout << endl;
+}
+
 void mouseClick(int button, int state, int x, int y) {
     cout << "Mouse click at " << x << ", " << y << " button " << button << "  state " << state << endl;
     if(button == GLUT_LEFT_BUTTON) {
     }
 }
 void mouseDrag(int x, int y) {
-    // cout << "Mouse drag at " << x << ", " << y << endl;
+     cout << "Mouse drag at " << x << ", " << y << endl;
 }
 void mouseMove(int x, int y) {
-    // cout << "Mouse move at " << x << ", " << y << endl;
+     cout << "Mouse move at " << x << ", " << y << endl;
 }
 
 long getTimePassed() {
@@ -82,9 +96,9 @@ void myDriver() {
     // myArmadilloClass.stepTime(timePassed);
     // send armadillo field to openGL
 
-    updateU();
-    // u = myArmadilloStuff.getSolution(u);
-    updateVertices();
+    updateU(); //copy z-coordinate of vertices into the solution vector u
+     u = myArmadilloStuff.getDiffusion(u); //numerical algorithm for diffusion (one time step)
+    updateVertices(); //updating z-components of vertices and colors for plotting
 
     
     glutPostRedisplay();
@@ -145,7 +159,7 @@ void display(void)
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 
-	angle+=0.5;
+	//angle+=0.5;
     	glutSwapBuffers();
 }
 
@@ -165,9 +179,9 @@ void minGRID() {
 			temp_z = cos(0.5*PI*x[i])*cos(0.5*PI*x[j]); // sin(PI*x[i])*sin(PI*x[j]);
 			vertices[3*n*i+3*j+2] = .5*temp_z; //z-coordinate
 
-			colors[3*i+3*n*j] = 200*(1-temp_z)+55; //red color
-			colors[3*n*i+3*j+1] = 800*(1-temp_z)*temp_z+55; //green color
-			colors[3*n*i+3*j+2] = 200*temp_z+55; //blue color			
+			colors[3*i+3*n*j] = 200*(1-temp_z)+55; //red color (0-255) strongest when z=0
+			colors[3*n*i+3*j+1] = 800*(1-temp_z)*temp_z+55; //green color (0-255) strongest when z=0.5
+			colors[3*n*i+3*j+2] = 200*temp_z+55; //blue color (0-255) strongest when z=1
 		}
 	}
 
@@ -186,7 +200,7 @@ void minGRID() {
 				
 				for(int i=0; i<n-1; i++){
 					a = 3*k*(n-1)*(n-1) + 3*l*(n-1) + j + 3*i;
-					indices[a] = index;
+					indices[a] = index; //this loop creates the index buffer
 					index++;
 				}
 			}
@@ -194,11 +208,11 @@ void minGRID() {
 	}
 
 // TAKES AWAY UPPER OR LOWER TRIANGLES
-//for (int i=0; i<(6*(n-1)*(n-1))/2; i++){indices[i]=0;}
+for (int i=0; i<(6*(n-1)*(n-1))/2; i++){indices[i]=0;}
 //for (int i=(6*(n-1)*(n-1))/2; i<6*(n-1)*(n-1); i++){indices[i]=0;}
 // PRINT FUNCTION
-//for (int i=0; i<6*(n-1)*(n-1); i++){cout << indices[i] << endl;}
-//for (int i=0; i<3*n*n; i++){cout << vertices[i] << endl;}
+//for (int i=0; i<6*(n-1)*(n-1); i++){cout << indices[i] << endl;} //print indices buffer
+//for (int i=0; i<3*n*n; i++){cout << vertices[i] << endl;} //print vertices buffer
 	
 }
 
@@ -225,7 +239,7 @@ void reshape(int w, int h) //NESCESSARY IF WINDOW NOT CHANGED?
 	glMatrixMode(GL_MODELVIEW); // Get Back to the Modelview
 }
 
-MyArmadilloClass::MyArmadilloClass(){
+MyArmadilloClass::MyArmadilloClass(){ //constructor
 	hx = 1./double(n-1);
 	ht = 0.001; //time-step
 	k = 100; //number of time-steps
@@ -252,7 +266,7 @@ mat MyArmadilloClass::getMat(){
 	return G;
 }
 
-vec MyArmadilloClass::getSolution(vec u) {
+vec MyArmadilloClass::getDiffusion(vec u) {
 	u = solve(G,u);
 	return u;
 }
