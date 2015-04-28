@@ -12,7 +12,7 @@ glut: minGLUT.cpp
 main: minGLUT.o 
 	g++ minGLUT.o -o main -lGL -lGLU -lglut -lGLEW -larmadillo #(makes main executable)
 
-all: minGLUT.cpp myArmadilloClass.cpp
+all: minGLUT.cpp
 	g++ -o main minGLUT.cpp myArmadilloClass.cpp -lGL -lGLU -lglut -lGLEW -larmadillo
 
 ## DO THIS ##

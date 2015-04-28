@@ -23,7 +23,7 @@ MyArmadilloClass::MyArmadilloClass(){ //constructor
 		A((i+1)*n-1,(i+1)*n) = 0; A((i+1)*n,(i+1)*n-1) = 0;
 		H((i+1)*n-1,(i+1)*n) = 0; H((i+1)*n,(i+1)*n-1) = 0;
 	}
-	H = -5/(2*hx)*H;
+	H = -6/(2*hx)*H;
 	A = -0.2/(hx*hx)*A;
 	A = A+H;
 	G = I-ht*A;
