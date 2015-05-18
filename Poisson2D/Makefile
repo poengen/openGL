@@ -3,17 +3,11 @@
 #	g++ -g -Wall -o main minGLUT.cpp myArmadilloClass.cpp -lGL -lGLU -lglut -lGLEW -larmadillo
 
 
-arma: myArmadilloClass.cpp
-	g++ -c myArmadilloClass.cpp -lGL -lGLU -lglut -lGLEW -larmadillo # (makes myArmadilloClass.o)
+arma: minGLUT.cpp myArmadilloClass.cpp
+	g++ -o arma minGLUT.cpp myArmadilloClass.cpp -lGL -lGLU -lglut -lGLEW -larmadillo
 
-glut: minGLUT.cpp
-	g++ -c minGLUT.cpp -lGL -lGLU -lglut -lGLEW -larmadillo # (makes minGLUT.o)
-
-main: minGLUT.o 
-	g++ minGLUT.o -o main -lGL -lGLU -lglut -lGLEW -larmadillo #(makes main executable)
-
-all: minGLUT.cpp myArmadilloClass.cpp
-	g++ -o main minGLUT.cpp myArmadilloClass.cpp -lGL -lGLU -lglut -lGLEW -larmadillo
+gs: gauss_seidel.cpp
+	g++ -o gs gauss_seidel.cpp -lGL -lGLU -lglut -lGLEW
 
 ## DO THIS ##
 # make arma

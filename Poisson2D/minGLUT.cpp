@@ -70,7 +70,7 @@ void mouseClick(int button, int state, int x, int y) {
 
 }
 void mouseDrag(int x, int y) {
-     	cout << "Mouse drag at " << x << ", " << y << endl;
+     	//cout << "Mouse drag at " << x << ", " << y << endl;
 	mouseAction(x,y);
 	
 }
@@ -85,9 +85,10 @@ void mouseAction(int x, int y){
 	float closestIndexX = (float)x/(float)pph;
 	float closestIndexY = (float)y/(float)pph;
 	int ix = round(closestIndexX); int iy = (n-1)-round(closestIndexY);
-	//cout << "Mouse click at: (" << x << ", " << y << "). Index is: (" << ix << ", " << iy << ")." << endl;
 	vertices[3*n*ix+3*iy+2] = 1; //z-coordinate
 	colors[3*ix+3*n*iy] = 255; //red color
+	//colors[3*n*ix+3*iy+2] = 255; //blue color
+	//cout << "Mouse move at: (" << x << ", " << y << "). Index is: (" << ix << ", " << iy << ")." << endl;
 }
 
 long getTimePassed() {
@@ -101,11 +102,11 @@ long getTimePassed() {
 }
 
 void myDriver() {
+	
     // figure out how long since last time
-	//long t = getTimePassed();
-	// cout << t << endl;
-    // timePassed = time.now() - lastTime;
-    // lastTime = time.now()
+	long t = getTimePassed();
+    	//timePassed = time.now() - lastTime;
+    	//lastTime = time.now()
     // update armadillo field
     // myArmadilloClass.stepTime(timePassed);
     // send armadillo field to openGL
@@ -113,6 +114,9 @@ void myDriver() {
     updateU(); //copy z-coordinate of vertices into the solution vector u
      u = myArmadilloStuff.getDiffusion(u); //numerical algorithm for diffusion (one time step)
     updateVertices(); //updating z-components of vertices and colors for plotting
+
+	t = getTimePassed();
+	cout << "n=25: Time in myDriver() = " << t << endl;
 
     
     glutPostRedisplay();
